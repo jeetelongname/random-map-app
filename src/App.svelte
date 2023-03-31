@@ -1,43 +1,75 @@
 <script>
- const topLeftLat = 50.8364233
- const topLeftLong = -1.0944622
+  import { Loader } from "@googlemaps/js-api-loader";
 
- const bottomRightLat =  50.7931739
- const bottomRightLong = -1.06503
+  const topLeftLat = 50.8355246;
+  const topLeftLong = -1.0938555;
 
- let randPoint = {lat: topLeftLat, long: topLeftLong}
+  const bottomRightLat = 50.7834841;
+  const bottomRightLong = -1.0392115;
+  let map = null;
+  let geocoder = null;
+  let latLng = null;
 
-     const getrand = (min, max) =>  Math.random() * (max - min) + min;
+  const getrand = (min, max) => Math.random() * (max - min) + min;
 
- const getRandomPoint = (topLeftLat, bottomRightLat, topLeftLong, bottomRightLong) => {
-     randPoint = {lat: getrand(topLeftLat, bottomRightLat), long: getrand(topLeftLong, bottomRightLong)}
- }
+  const getRandomPoint = (
+    topLeftLat,
+    bottomRightLat,
+    topLeftLong,
+    bottomRightLong
+  ) => {
+    document.querySelector(".place").textContent = "";
+    let lat = getrand(topLeftLat, bottomRightLat);
+    let long = getrand(topLeftLong, bottomRightLong);
+    latLng = new google.maps.LatLng(lat, long); //Makes a latlng
+    map.setZoom(20);
+    map.setCenter(latLng);
+  };
 
- const constructLink = (point) => `https://www.google.com/maps/@${point.lat},${point.long},20z`
+  const revealLocation = (latLng) => {
+    if (document.querySelector(".place").textContent == "") {
+      geocoder.geocode({ location: latLng }).then((response) => {
+        if (response.results[0]) {
+          document.querySelector(".place").textContent =
+            response.results[0].formatted_address;
+        }
+      });
+    }
+  };
 
- const constructEmbed = (point) => `https://www.google.com/maps/embed?pb=!1m10!1m8!1m3!1d3085.1720377496626!2d${point.long}!3d${point.lat}!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2suk!4v1679748545620!5m2!1sen!2suk`
+  const apiOptions = {
+    apiKey: null,
+  };
+
+  const loader = new Loader(apiOptions);
+
+  loader.load().then(() => {
+    console.log("Maps JS API Loaded");
+    const mapOptions = {
+      center: { lat: 50.806999, lng: -1.069369 },
+      zoom: 13,
+      mapTypeId: "satellite",
+    };
+
+    const mapDiv = document.getElementById("map");
+    map = new google.maps.Map(mapDiv, mapOptions);
+    geocoder = new google.maps.Geocoder();
+    let latLng = new google.maps.LatLng(bottomRightLat, bottomRightLong); //Makes a latlng
+  });
 </script>
 
-
 <main>
-    <h1>Random Point in Portsmouth</h1>
+  <h1>Random Point in Portsmouth</h1>
 
-    <iframe
-        title="A map"
-        src={constructEmbed(randPoint)}
-        width="600"
-        height="450"
-        style="border:0;"
-        allowfullscreen=""
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade">
-    </iframe>
+  <button on:click={() => getRandomPoint(topLeftLat, bottomRightLat, topLeftLong, bottomRightLong)}>
+    generate new point
+  </button>
 
-    <button on:click={() => getRandomPoint(topLeftLat, bottomRightLat, topLeftLong, bottomRightLong)}>
-        generate new point
-    </button>
-    <p>
-        google link: <a href="{constructLink(randPoint)}">{constructLink(randPoint)}</a>
-    </p>
+  <button on:click={() => revealLocation(latLng)}> Show location </button>
 
+  <div id="map" style=" width: 50rem; height: 50rem;">A map</div>
+  <div class="place">''</div>
 </main>
+
+<style>
+</style>
